@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/moderation}
+    username: ${DB_USER:moderation}
+    password: ${DB_PASSWORD:moderation}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+  topic:
+    input: ${KAFKA_TOPIC_INPUT:topic-1}
+    output: ${KAFKA_TOPIC_OUTPUT:topic-2}
+
+service2:
+  base-url: ${SERVICE2_BASE_URL:http://localhost:8082}
+
+rules:
+  restricted-categories: ["fraud", "chargeback"]
+  work-start: "09:00"
+  work-end: "18:00"
+  time-zone: Asia/Almaty
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

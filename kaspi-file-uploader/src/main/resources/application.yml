@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/uploader}
+    username: ${DB_USER:uploader}
+    password: ${DB_PASSWORD:uploader}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+storage:
+  base-path: ${STORAGE_BASE_PATH:/data/storage}
+  temp-path: ${STORAGE_TEMP_PATH:/data/tmp}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

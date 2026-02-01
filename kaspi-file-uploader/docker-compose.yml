@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16
+    container_name: kaspi-uploader-db
+    environment:
+      POSTGRES_DB: uploader
+      POSTGRES_USER: uploader
+      POSTGRES_PASSWORD: uploader
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: kaspi-file-uploader
+    depends_on:
+      - db
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/uploader
+      DB_USER: uploader
+      DB_PASSWORD: uploader
+      STORAGE_BASE_PATH: /data/storage
+      STORAGE_TEMP_PATH: /data/tmp
+    ports:
+      - "8080:8080"
+    volumes:
+      - storage_data:/data
+
+volumes:
+  db_data:
+  storage_data:

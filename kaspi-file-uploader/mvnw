@@ -1,0 +1,61 @@
+#!/bin/sh
+# Apache Maven Wrapper
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+MAVEN_PROJECTBASEDIR=${MAVEN_PROJECTBASEDIR:-"$(dirname "$0")"}
+
+# OS specific support.
+cygwin=false
+mingw=false
+case "$(uname)" in
+  CYGWIN*) cygwin=true ;;
+  MINGW*) mingw=true ;;
+esac
+
+# Resolve JAVA_HOME
+if [ -z "$JAVA_HOME" ]; then
+  JAVA_HOME=$(java -XshowSettings:properties -version 2>&1 | awk -F= '/java.home/ {print $2}' | xargs)
+fi
+
+if [ -z "$JAVA_HOME" ]; then
+  echo "Error: JAVA_HOME is not set and java could not be found." >&2
+  exit 1
+fi
+
+if [ ! -x "$JAVA_HOME/bin/java" ]; then
+  echo "Error: JAVA_HOME is set to an invalid directory: $JAVA_HOME" >&2
+  exit 1
+fi
+
+WRAPPER_DIR="$MAVEN_PROJECTBASEDIR/.mvn/wrapper"
+WRAPPER_JAR="$WRAPPER_DIR/maven-wrapper.jar"
+WRAPPER_PROPERTIES="$WRAPPER_DIR/maven-wrapper.properties"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$(grep -E '^wrapperUrl=' "$WRAPPER_PROPERTIES" | cut -d= -f2-)" -o "$WRAPPER_JAR" || exit 1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "$(grep -E '^wrapperUrl=' "$WRAPPER_PROPERTIES" | cut -d= -f2-)" -O "$WRAPPER_JAR" || exit 1
+  else
+    echo "Error: curl or wget is required to download Maven Wrapper" >&2
+    exit 1
+  fi
+fi
+
+exec "$JAVA_HOME/bin/java" -jar "$WRAPPER_JAR" -Dmaven.multiModuleProjectDirectory="$MAVEN_PROJECTBASEDIR" "$@"
