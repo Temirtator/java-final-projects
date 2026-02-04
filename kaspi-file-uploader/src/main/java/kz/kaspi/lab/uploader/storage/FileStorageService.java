@@ -32,7 +32,7 @@ public class FileStorageService {
 
         MessageDigest digest = sha256();
         try (InputStream inputStream = Files.newInputStream(tempFile, StandardOpenOption.READ);
-             OutputStream outputStream = Files.newOutputStream(targetPath, StandardOpenOption.CREATE_NEW)) {
+            OutputStream outputStream = Files.newOutputStream(targetPath, StandardOpenOption.CREATE_NEW)) {
             byte[] buffer = new byte[8192];
             int read;
             while ((read = inputStream.read(buffer)) != -1) {

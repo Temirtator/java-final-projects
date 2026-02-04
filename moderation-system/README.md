@@ -9,6 +9,18 @@
 - Kafka: Topic-1 и Topic-2
 - Redis: кэш расширенной информации
 
+## Диаграмма
+```mermaid
+flowchart LR
+  T1[Kafka Topic-1] --> S1[Service-1]
+  S1 -->|rules| R{Rules}
+  R -->|allow| T2[Kafka Topic-2]
+  R -->|deny| X[Stop]
+  S1 -->|REST| S2[Service-2]
+  S2 --> REDIS[(Redis)]
+  S1 --> DB[(PostgreSQL)]
+```
+
 ## Запуск
 Из корня проекта:
 
@@ -45,3 +57,43 @@
 
 ## Проверка
 Отправь сообщение в Topic-1 (например, через kafka-console-producer) и проверь, что Service-1 публикует результат в Topic-2.
+
+## Как тестировать реализацию
+
+### 1) Подготовка топиков
+```bash
+docker exec -i moderation-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+docker exec -i moderation-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic topic-1 --partitions 1 --replication-factor 1
+docker exec -i moderation-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic topic-2 --partitions 1 --replication-factor 1
+```
+
+### 2) Запуск слушателя Topic-2
+```bash
+docker exec -i moderation-kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic topic-2 --from-beginning
+```
+
+### 3) Отправка события в Topic-1
+```bash
+docker exec -i moderation-kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic topic-1
+```
+Пример сообщения:
+```json
+{"eventId":"evt-100","clientId":"client-1","category":"general","createdAt":"2026-02-01T10:00:00+06:00"}
+```
+
+### 4) Проверка кейсов
+**Идемпотентность**: отправь событие с тем же `eventId` повторно — новое сообщение в Topic-2 не появится.
+
+**Активное обращение**: отправь событие с новым `eventId`, но тем же `clientId` и `category` — публикации не будет.
+
+**Рабочее время**: категории из `restricted-categories` (например, `fraud`, `chargeback`) вне рабочего времени не публикуются.
+
+## Тест производительности (100 rps)
+```bash
+docker exec -i moderation-kafka /opt/kafka/bin/kafka-producer-perf-test.sh \
+  --topic topic-1 \
+  --num-records 1000 \
+  --record-size 200 \
+  --throughput 100 \
+  --producer-props bootstrap.servers=localhost:9092
+```

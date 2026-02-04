@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -71,6 +72,14 @@ public class UploadController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping
+    public ResponseEntity<List<UploadStatusResponse>> all() {
+        List<UploadStatusResponse> responses = uploadRequestRepository.findAll().stream()
+                .map(this::toStatusResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
     private UploadStatusResponse toStatusResponse(UploadRequest request) {
         UploadStatusResponse response = new UploadStatusResponse();
         response.setRequestId(request.getId());
@@ -92,6 +101,7 @@ public class UploadController {
         boolean allowedExtension = extension.equals("txt")
                 || extension.equals("doc")
                 || extension.equals("docx")
+                || extension.equals("pdf")
                 || extension.equals("jpg")
                 || extension.equals("jpeg")
                 || extension.equals("png")
@@ -104,10 +114,11 @@ public class UploadController {
                         || contentType.equals("text/plain")
                         || contentType.equals("application/msword")
                         || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                        || contentType.equals("application/pdf")
         );
 
         if (!allowedExtension || !allowedContentType) {
-            return "Invalid file type. Allowed: images (.jpg, .jpeg, .png, .gif, .bmp), .txt, .doc, .docx";
+            return "Invalid file type. Allowed: images (.jpg, .jpeg, .png, .gif, .bmp), .txt, .doc, .docx, .pdf";
         }
 
         return null;
