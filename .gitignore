@@ -32,5 +32,9 @@ logs/
 **/storage/
 **/tmp/
 
+### Do not ignore Java source packages named storage
+!**/src/main/java/**/storage/
+!**/src/main/java/**/storage/**
+
 ### Node (if any tools added later)
 node_modules/
