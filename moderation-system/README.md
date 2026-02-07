@@ -78,7 +78,11 @@ docker exec -i moderation-kafka /opt/kafka/bin/kafka-console-producer.sh --boots
 ```
 Пример сообщения:
 ```json
-{"eventId":"evt-100","clientId":"client-1","category":"general","createdAt":"2026-02-01T10:00:00+06:00"}
+{"eventId":"evt-103","clientId":"client-1","category":"general example","createdAt":"2026-02-01T10:00:00+06:00"}
+
+{"eventId":"evt-107","clientId":"client-2","category":"general","createdAt":"2026-02-01T10:00:00+06:00"}
+
+{"eventId":"evt-200","clientId":"client-200","category":"chargeback","createdAt":"2026-02-01T10:00:00+06:00"}
 ```
 
 ### 4) Проверка кейсов
@@ -89,11 +93,32 @@ docker exec -i moderation-kafka /opt/kafka/bin/kafka-console-producer.sh --boots
 **Рабочее время**: категории из `restricted-categories` (например, `fraud`, `chargeback`) вне рабочего времени не публикуются.
 
 ## Тест производительности (100 rps)
+Сначала сгенерируй валидный JSON‑payload (каждый запуск будет с новым случайным содержимым):
+```bash
+python3 - <<'PY'
+import json, uuid, random, datetime
+payload = {
+  "eventId": str(uuid.uuid4()),
+  "clientId": f"client-{random.randint(1,9999)}",
+  "category": "general",
+  "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+}
+with open("/tmp/appeal.json", "w") as f:
+  f.write(json.dumps(payload))
+PY
+```
+
+Скопируй файл в контейнер Kafka:
+```bash
+docker cp /tmp/appeal.json moderation-kafka:/tmp/appeal.json
+```
+
+Запусти perf‑тест с этим payload (он будет повторяться для всех сообщений этого запуска):
 ```bash
 docker exec -i moderation-kafka /opt/kafka/bin/kafka-producer-perf-test.sh \
   --topic topic-1 \
   --num-records 1000 \
-  --record-size 200 \
-  --throughput 100 \
+  --throughput 500 \
+  --payload-file /tmp/appeal.json \
   --producer-props bootstrap.servers=localhost:9092
 ```
